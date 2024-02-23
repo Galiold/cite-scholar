@@ -1,0 +1,61 @@
+#!/home/galiold/projects/citepy/venv/bin/python
+
+from bs4 import BeautifulSoup
+import pyperclip as pc
+import bibtexparser
+import requests
+import random
+import time
+
+socks_proxies = dict(http='socks5://0.0.0.0:9999', https='socks5://0.0.0.0:9999')
+
+def get(url):
+    return requests.get(url=url)
+
+def get_with_proxy(url):
+    return requests.get(url=url, proxies=socks_proxies)
+
+clipboard = pc.paste()
+
+bib = bibtexparser.loads(clipboard)
+
+try:
+    for idx, entry in enumerate(bib.entries):
+        if idx > 0:
+            wait_time = random.randint(3, 10)
+            print(f'Waiting for {wait_time} seconds...\n')
+            time.sleep(wait_time)
+            
+        title = entry['title']
+        base_url = "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=" + title + "&btnG= "
+
+        googleSearch = get_with_proxy(base_url)
+        
+        bs_page = BeautifulSoup(googleSearch.content, "html.parser")
+        block = bs_page.find("div", {"class": "gs_ri"})
+        title = block.find("h3")
+        link = title.find("a")
+        citation_id = link["id"]
+
+        cite_url = "https://scholar.google.com/scholar?hl=en&q=info:" + citation_id + ":scholar.google.com/&output=cite&scirp=0"
+
+        findLatex = get_with_proxy(cite_url)
+
+        citation_view = BeautifulSoup(findLatex.content, "html.parser")
+        latex_link = citation_view.find("div", {"id": "gs_citi"})
+
+        latex_mf = latex_link.findChildren("a")[0]["href"]
+
+        result = BeautifulSoup(get_with_proxy(latex_mf).content, "html.parser")
+
+        citation = bibtexparser.loads(result.text)
+
+        if 'doi' in entry and 'doi' not in citation.entries[0]:
+            citation.entries[0]['doi'] = entry['doi']
+
+        print(bibtexparser.dumps(citation))
+    
+    print('Conversion done')
+except Exception as e:
+    print('Cite conversion failed.')
+    print(e)
