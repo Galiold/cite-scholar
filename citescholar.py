@@ -1,5 +1,3 @@
-#!/home/galiold/projects/citepy/venv/bin/python
-
 from bs4 import BeautifulSoup
 import pyperclip as pc
 import bibtexparser
