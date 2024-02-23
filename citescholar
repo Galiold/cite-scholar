@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
         print(out_text)
 
-        file_path = f"{os.getcwd()}/citescholar-{datetime.datetime.now()}"
+        file_path = f"{os.getcwd()}/citescholar-{datetime.datetime.now()}.bib"
 
         with open(file_path, 'w+') as file:
             file.write(out_text)
