@@ -1,0 +1,6 @@
+bs4
+pyperclip
+bibtexparser
+requests
+tqdm
+browser_cookie3
